@@ -99,7 +99,6 @@ bundle() {
     local _bucket=$(get_deploy_config ".eb.bundle.s3.bucket")
     local _directory=$(get_deploy_config ".eb.bundle.s3.directory")
 
-    echo "bundle:"
     zip -r $_out $_input
     echo -n "upload bundle: "
     aws s3 cp $_out s3://$_bucket/$_directory/$_eb_app_version.zip
