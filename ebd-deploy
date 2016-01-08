@@ -1,0 +1,132 @@
+#!/bin/bash
+
+set -e
+
+# $ ebd-deploy [<environment name>] [<region>]
+
+deploy_config_file="ebd.json"
+if [ ! -f $deploy_config_file ]; then
+    echo "$deploy_config_file is not found" >> /dev/stderr
+    exit 1
+fi
+
+# helpers for reading config {{{
+deploy_json=$(cat $deploy_config_file)
+get_deploy_config() {
+    local _key=$1
+    echo $deploy_json | jq -r "$_key"
+}
+eb_json=$(cat $(get_deploy_config ".eb.config_yaml") | $(get_deploy_config ".commands.yaml2json"))
+get_eb_config() {
+    local _key=$1
+    echo $eb_json | jq -r "$_key"
+}
+# }}}
+
+eb_create_application_version() {
+    local _eb_region=$1
+    local _eb_app_name=$2
+    local _eb_app_version=$3
+    local _bucket=$(get_deploy_config ".eb.bundle.s3.bucket")
+    local _directory=$(get_deploy_config ".eb.bundle.s3.directory")
+
+    echo -n "create app version: "
+    aws elasticbeanstalk create-application-version \
+        --region $_eb_region \
+        --application-name $_eb_app_name \
+        --version-label $_eb_app_version \
+        --source-bundle S3Bucket="$_bucket",S3Key="$_directory/$_eb_app_version.zip" |
+        jq -r '.ApplicationVersion | "app=" + .ApplicationName + " version=" + .VersionLabel'
+}
+
+eb_update_environment() {
+    local _eb_region=$1
+    local _eb_env_name=$2
+    local _eb_app_version=$3
+
+    echo -n "update environment: "
+    aws elasticbeanstalk update-environment \
+        --region $_eb_region \
+        --environment-name $_eb_env_name \
+        --version-label $_eb_app_version |
+        jq -r '"app=" + .ApplicationName + " version=" + .VersionLabel + " env=" + .EnvironmentName'
+}
+
+eb_get_env_status() {
+    local _eb_region=$1
+    local _eb_env_name=$2
+
+    aws elasticbeanstalk describe-environments \
+        --region $_eb_region  \
+        --environment-name $_eb_env_name |
+        jq -r '.Environments[0].Status'
+}
+
+eb_list_application_versions() {
+    local _eb_region=$1
+    local _eb_app_name=$2
+
+    aws elasticbeanstalk describe-application-versions \
+        --region $_eb_region \
+        --application-name $_eb_app_name |
+        jq -r '.ApplicationVersions[].VersionLabel'
+}
+
+eb_polling_events() {
+    local _start_time=$1
+    local _eb_region=$2
+    local _eb_env_name=$3
+
+    while true; do
+        aws elasticbeanstalk describe-events \
+            --region $_eb_region \
+            --environment-name $_eb_env_name \
+            --start-time $_start_time |
+            jq -r '.Events | reverse | .[] | .EventDate + " | " + .Severity + " | " + .Message'
+
+        test "$(eb_get_env_status $_eb_region $_eb_env_name)" != "Updating" && exit 0
+
+        _start_time=$(date +%s)
+        sleep 5
+    done
+}
+
+bundle() {
+    local _eb_app_version=$1
+
+    local _input=$(get_deploy_config ".eb.bundle.input")
+    local _out=$(get_deploy_config ".eb.bundle.output")
+    local _bucket=$(get_deploy_config ".eb.bundle.s3.bucket")
+    local _directory=$(get_deploy_config ".eb.bundle.s3.directory")
+
+    echo "bundle:"
+    zip -r $_out $_input
+    echo -n "upload bundle: "
+    aws s3 cp $_out s3://$_bucket/$_directory/$_eb_app_version.zip
+}
+
+export AWS_PROFILE=$(get_eb_config ".global.profile")
+
+# EB Region
+eb_region=$2
+[ -z "$eb_region" ] && eb_region=$(get_eb_config ".global.default_region")
+# EB Application Name
+eb_app_name=$(get_eb_config ".global.application_name")
+# EB Application Version
+eb_app_version=$(date +$(get_deploy_config ".eb.application.version_format") | sed -e s/{revision}/"$(git rev-parse HEAD | cut -c 1-6)"/)
+# EB Environment Name
+eb_env_name=$1
+if [ -z "$eb_env_name" ]; then
+    eb_env_name=$(get_eb_config '."branch-defaults"."'$(git rev-parse --abbrev-ref HEAD)'".environment')
+    if [ "$eb_env_name" = "null" ]; then
+        echo "No provided environment for the given branch" >> /dev/stderr
+        exit 1
+    fi
+fi
+
+# Start deployment
+deploy_start_time=$(date +%s)
+bundle $eb_app_version
+eb_create_application_version $eb_region $eb_app_name $eb_app_version
+eb_update_environment $eb_region $eb_env_name $eb_app_version
+eb_polling_events $deploy_start_time $eb_region $eb_env_name
