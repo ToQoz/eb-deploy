@@ -6,6 +6,12 @@
 $ eb-deploy [<environment name>] [<region>]
 ```
 
+## Requirements
+
+- jq
+- awscli
+- yaml -> json command (e.g. remarshal, yaml2json, etc...)
+
 ## Example: deploy docker container
 
 - create AWS Elastic Beanstalk application and environment
