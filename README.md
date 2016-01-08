@@ -8,9 +8,9 @@ $ eb-deploy [<environment name>] [<region>]
 
 ## Requirements
 
-- jq
-- awscli
-- yaml -> json command (e.g. remarshal, yaml2json, etc...)
+- [jq](https://github.com/stedolan/jq)
+- [aws-cli](https://github.com/aws/aws-cli)
+- yaml -> json command ([remarshal](https://github.com/dbohdan/remarshal), [yaml2json](https://github.com/dbohdan/remarshal), `"require 'yaml'; require 'json'; STDOUT.puts YAML.load(STDIN.read).to_json"` etc...)
 
 ## Example: deploy docker container
 
@@ -35,7 +35,7 @@ $ cat eb-deploy.json
     ]
   },
   "commands": {
-    "yaml2json": "remarshal -if yaml -of json"
+    "yaml2json": "require 'yaml'; require 'json'; STDOUT.puts YAML.load(STDIN.read).to_json"
   },
   "eb": {
     "config_yaml": ".elasticbeanstalk/config.yml",
