@@ -6,7 +6,7 @@
 $ eb-deploy [<environment name>] [<region>]
 ```
 
-## Getting Started
+## Example: deploy docker container
 
 - create AWS Elastic Beanstalk application and environment
 - `eb init`
