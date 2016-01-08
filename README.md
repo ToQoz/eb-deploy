@@ -1,9 +1,9 @@
-# ebd-deploy
+# eb-deploy
 
 ## Usage
 
 ```
-$ ebd-deploy [<environment name>] [<region>]
+$ eb-deploy [<environment name>] [<region>]
 ```
 
 ## Getting Started
@@ -11,10 +11,10 @@ $ ebd-deploy [<environment name>] [<region>]
 - create AWS Elastic Beanstalk application and environment
 - `eb init`
 - push your docker image to registry
-- `ebd-deploy`
+- `eb-deploy`
 
 ```
-$ cat ebd.json
+$ cat eb-deploy.json
 {
   "commands": {
     "yaml2json": "remarshal -if yaml -of json"
@@ -28,18 +28,18 @@ $ cat ebd.json
       "input": "Dockerrun.aws.json .ebextensions",
       "output": "bundle.zip",
       "s3": {
-        "bucket": "example-ebd-deploy",
+        "bucket": "example-eb-deploy",
         "directory": "bundles"
       }
     }
   }
 }
-$ ebd-deploy
+$ eb-deploy
 updating: Dockerrun.aws.json (deflated 35%)
 updating: .ebextensions/ (stored 0%)
 updating: .ebextensions/xxx.config (deflated 53%)
 updating: .ebextensions/yyy.config (deflated 59%)
-upload bundle: upload: ./bundle.zip to s3://example-ebd-deploy/bundles/20160108190330-2x9f29.zip
+upload bundle: upload: ./bundle.zip to s3://example-eb-deploy/bundles/20160108190330-2x9f29.zip
 create app version: app=zzz version=20160108190330-2x9f29
 update environment: app=zzz version=20160108190330-2x9f29 env=zzz-prod
 2016-01-08T10:03:34.236Z | INFO | Environment update is starting.

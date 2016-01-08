@@ -2,9 +2,9 @@
 
 set -e
 
-# $ ebd-deploy [<environment name>] [<region>]
+# $ eb-deploy [<environment name>] [<region>]
 
-deploy_config_file="ebd.json"
+deploy_config_file="eb-deploy.json"
 if [ ! -f $deploy_config_file ]; then
     echo "$deploy_config_file is not found" >> /dev/stderr
     exit 1
