@@ -9,6 +9,7 @@ $ ebd-deploy [<environment name>] [<region>]
 ## Getting Started
 
 - create AWS Elastic Beanstalk application and environment
+- `eb init`
 - push your docker image to registry
 - `ebd-deploy`
 
