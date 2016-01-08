@@ -84,7 +84,9 @@ eb_polling_events() {
             --start-time $_start_time |
             jq -r '.Events | reverse | .[] | .EventDate + " | " + .Severity + " | " + .Message'
 
-        test "$(eb_get_env_status $_eb_region $_eb_env_name)" != "Updating" && exit 0
+        if [ "$(eb_get_env_status $_eb_region $_eb_env_name)" != "Updating" ]; then
+            return 0
+        fi
 
         _start_time=$(date +%s)
         sleep 5
@@ -124,8 +126,10 @@ if [ -z "$eb_env_name" ]; then
 fi
 
 # Start deployment
+eval "$(get_deploy_config '.hooks.before_deploy[]?')"
 deploy_start_time=$(date +%s)
 bundle $eb_app_version
 eb_create_application_version $eb_region $eb_app_name $eb_app_version
 eb_update_environment $eb_region $eb_env_name $eb_app_version
 eb_polling_events $deploy_start_time $eb_region $eb_env_name
+eval "$(get_deploy_config '.hooks.after_deploy[]?')"
