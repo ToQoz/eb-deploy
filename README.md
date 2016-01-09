@@ -22,18 +22,6 @@ $ eb-deploy [<environment name>] [<region>]
 ```
 $ cat eb-deploy.json
 {
-  "hooks": {
-    "before_deploy": [
-      "echo '*********************'",
-      "echo '*** before deploy ***'",
-      "echo '*********************'"
-    ],
-    "after_deploy": [
-      "echo '*********************'",
-      "echo '*** after deploy ***'",
-      "echo '*********************'"
-    ]
-  },
   "commands": {
     "yaml2json": "require 'yaml'; require 'json'; STDOUT.puts YAML.load(STDIN.read).to_json"
   },
@@ -53,9 +41,6 @@ $ cat eb-deploy.json
   }
 }
 $ eb-deploy
-*********************
-*** before deploy ***
-*********************
 updating: Dockerrun.aws.json (deflated 35%)
 updating: .ebextensions/ (stored 0%)
 updating: .ebextensions/xxx.config (deflated 53%)
@@ -68,7 +53,4 @@ update environment: app=zzz version=20160108190330-2x9f29 env=zzz-prod
 2016-01-08T10:04:40.794Z | INFO | Environment health has transitioned from Ok to Info. Command is executing on all instances.
 2016-01-08T10:04:52.840Z | INFO | New application version was deployed to running EC2 instances.
 2016-01-08T10:04:52.884Z | INFO | Environment update completed successfully.
-*********************
-*** after deploy ***
-*********************
 ```
