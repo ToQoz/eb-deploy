@@ -106,7 +106,8 @@ bundle() {
     aws s3 cp $_out s3://$_bucket/$_directory/$_eb_app_version.zip
 }
 
-export AWS_PROFILE=$(get_eb_config ".global.profile")
+profile=$(get_eb_config ".global.profile")
+[ "$profile" != "null" ] && export AWS_PROFILE="$profile"
 
 # EB Region
 eb_region=$2
