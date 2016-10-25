@@ -16,7 +16,7 @@ get_deploy_config() {
     local _key=$1
     echo $deploy_json | jq -r "$_key"
 }
-eb_json=$(cat $(get_deploy_config ".eb.config_yaml") | $(get_deploy_config ".commands.yaml2json"))
+eb_json=$(cat $(get_deploy_config ".eb.config_yaml") | eval "$(get_deploy_config ".commands.yaml2json")")
 get_eb_config() {
     local _key=$1
     echo $eb_json | jq -r "$_key"
