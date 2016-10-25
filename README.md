@@ -11,6 +11,8 @@ $ eb-deploy [<environment name>] [<region>]
 - [jq](https://github.com/stedolan/jq)
 - [aws-cli](https://github.com/aws/aws-cli)
 - yaml -> json command ([remarshal](https://github.com/dbohdan/remarshal), [yaml2json](https://github.com/dbohdan/remarshal), `ruby -r yaml -r json -e 'STDOUT.puts YAML.load(STDIN.read).to_json'` etc...)
+- define `commands.yaml2json`
+- define `commands.get_git_branch`. for example, `git rev-parse --abbrev-ref HEAD`, `echo $WERCKER_GIT_BRANCH`
 
 ## Example: deploy docker container
 
@@ -23,6 +25,7 @@ $ eb-deploy [<environment name>] [<region>]
 $ cat eb-deploy.json
 {
   "commands": {
+    "get_git_branch": "git rev-parse --abbrev-ref HEAD",
     "yaml2json": "ruby -r yaml -r json -e 'STDOUT.puts YAML.load(STDIN.read).to_json'"
   },
   "eb": {
